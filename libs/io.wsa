@@ -1,0 +1,44 @@
+
+label prints
+
+doub
+jumpz prints_end
+outC
+jump prints
+
+label prints_end
+pop
+ret
+
+label printsln
+call prints
+push 10
+outC
+ret
+
+
+
+{-
+label printf
+
+
+test 0
+jumpz printf_end
+
+test '%'
+jumpz printf_special
+
+outC
+jump printf
+
+label printf_special
+pop
+test 'i'
+jumpz printf_number
+
+
+
+label printf_end
+pop
+ret
+-}

@@ -1,0 +1,5 @@
+Whitespace Assembler
+
+An Assembler for Whitespace, quite complex already. It is written in Haskell.
+Features are Includes, options(defines in cpp), extended syntax ...
+There is already an Assembler like this, but I did not know of its existence when I started writing this.
