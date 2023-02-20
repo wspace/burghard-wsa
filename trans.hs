@@ -1,4 +1,5 @@
 module Trans where
+import Data.Char
 
 --translateWSA a = translateWSA' (a ++ ".wsa") (a ++ ".pws") (a ++ ".ws")
 
