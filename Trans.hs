@@ -379,9 +379,9 @@ simplifyIncludeOps :: [Op] -> [Op]
 simplifyIncludeOps o = concat (map simplifyIncludeOp o)
 
 simplifyIncludeOp :: Op -> [Op]
-simplifyIncludeOp o = [o]
---simplifyIncludeOp (Include f) = simplifyIncludeOps (fileToOps f)
 simplifyIncludeOp (Include f) = []
+--simplifyIncludeOp (Include f) = simplifyIncludeOps (fileToOps f)
+simplifyIncludeOp o = [o]
 
 
 simplifyOps :: [Op] -> [Op]
