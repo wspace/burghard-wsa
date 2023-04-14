@@ -15,10 +15,10 @@ getWSAOptions filename = do
 
 uniqueList :: Eq a => [a] -> [a]
 uniqueList list = foldr uniqueList' [] list
-	where
-		uniqueList' :: Eq a => a -> [a] -> [a]
-		uniqueList' x xs | elem x xs = xs
-		uniqueList' x xs = (x:xs)
+    where
+        uniqueList' :: Eq a => a -> [a] -> [a]
+        uniqueList' x xs | elem x xs = xs
+        uniqueList' x xs = (x:xs)
 
 
 translateWSAOptions :: String -> [String] -> Bool -> IO()
@@ -40,14 +40,14 @@ translateWSToEndedWS s = s ++ "\n\n\nquit\n\n\n"
 -- ret ret add to make it compatible to the interpreter
 translatePWSToEndedPWS :: String -> String
 translatePWSToEndedPWS s = s ++ "\n\n" ++ (take (fromInteger (6 - (getCAtEndCount 0 s))) (repeat 'c')) ++ "\n\n"
-	where
-		getCAtEndCount :: Integer -> String -> Integer
-		getCAtEndCount i ('a':xs) = getCAtEndCount 0 xs
-		getCAtEndCount i ('b':xs) = getCAtEndCount 0 xs
-		getCAtEndCount i ('c':xs) | i < 5 = getCAtEndCount (i+1) xs
-		getCAtEndCount i ('c':xs) = error "too many c are following can not end this file for the interpreter"
-		getCAtEndCount i (_:xs) = getCAtEndCount i xs
-		getCAtEndCount i [] = i
+    where
+        getCAtEndCount :: Integer -> String -> Integer
+        getCAtEndCount i ('a':xs) = getCAtEndCount 0 xs
+        getCAtEndCount i ('b':xs) = getCAtEndCount 0 xs
+        getCAtEndCount i ('c':xs) | i < 5 = getCAtEndCount (i+1) xs
+        getCAtEndCount i ('c':xs) = error "too many c are following can not end this file for the interpreter"
+        getCAtEndCount i (_:xs) = getCAtEndCount i xs
+        getCAtEndCount i [] = i
 -}
 
 readFileToStringListWithIncludes :: String -> IO [[String]]
@@ -59,20 +59,20 @@ fileToString = removeComments . filterTab . (map toLower)
 
 precompileInclude :: [String] -> [String] -> [[String]] -> IO [[String]]
 precompileInclude filesDone filesToDo (("include":file:[]):xs) =
-	if( elem file filesDone) then
-		(precompileInclude filesDone filesToDo xs)
-		else
-		(precompileInclude filesDone (file:filesToDo) xs)
+    if( elem file filesDone) then
+        (precompileInclude filesDone filesToDo xs)
+        else
+        (precompileInclude filesDone (file:filesToDo) xs)
 
 precompileInclude filesDone filesToDo (x:xs) = do
-	next <-(precompileInclude filesDone filesToDo xs)
-	return (x:next)
+    next <-(precompileInclude filesDone filesToDo xs)
+    return (x:next)
 
 precompileInclude filesDone (x:xs) [] = do
-	file <- readFile (x++".wsa")
-	let str = fileToString file in
-		let strList = stringToStringList str in
-			(precompileInclude (x:filesDone) xs strList)
+    file <- readFile (x++".wsa")
+    let str = fileToString file in
+        let strList = stringToStringList str in
+            (precompileInclude (x:filesDone) xs strList)
 
 precompileInclude filesDone [] [] = do return []
 
@@ -82,8 +82,8 @@ precompileStringList = precompileOption
 
 precompileOption :: [[String]] -> [String] -> [[String]]
 precompileOption code options =
-	let (done,rest) = precompileOptionCode options code in
-		if( rest == [] ) then done else (error "endoption without ifoption")
+    let (done,rest) = precompileOptionCode options code in
+        if( rest == [] ) then done else (error "endoption without ifoption")
 
 
 getStringListOptions :: [[String]] -> [String]
@@ -98,9 +98,9 @@ getStringListOptions' [] = []
 precompileOptionCode :: [String] -> [[String]] -> ([[String]],[[String]])
 precompileOptionCode opts (("option":a:[]):xs) = precompileOptionCode (a:opts) xs
 precompileOptionCode opts (("ifoption":a:[]):xs) =
-	let (done,rest) = precompileOptionIf False opts (("ifoption":a:[]):xs) in
-		let (done2,rest2) = precompileOptionCode opts rest in
-			(done ++ done2,rest2)
+    let (done,rest) = precompileOptionIf False opts (("ifoption":a:[]):xs) in
+        let (done2,rest2) = precompileOptionCode opts rest in
+            (done ++ done2,rest2)
 precompileOptionCode opts (("elseoption":[]):xs) = ([], (("elseoption":[]):xs))
 precompileOptionCode opts (("elseifoption":a:[]):xs) = ([], (("elseifoption":a:[]):xs))
 precompileOptionCode opts (("endoption":[]):xs) = ([], (("endoption":[]):xs))
@@ -109,41 +109,41 @@ precompileOptionCode opts [] = ([],[])
 
 precompileOptionIf :: Bool -> [String] -> [[String]] -> ([[String]],[[String]])
 precompileOptionIf False ops (("ifoption":a:[]):xs) =
-	if( elem a ops ) then
-		let (done,rest) = precompileOptionCode ops xs in
-			let (done2,rest2) = precompileOptionIf True ops rest in
-				(done++done2,rest2)
-		else
-		let (done,rest) = precompileOptionCode ops xs in
-			let (done2,rest2) = precompileOptionIf False ops rest in
-				(done2,rest2)
+    if( elem a ops ) then
+        let (done,rest) = precompileOptionCode ops xs in
+            let (done2,rest2) = precompileOptionIf True ops rest in
+                (done++done2,rest2)
+        else
+        let (done,rest) = precompileOptionCode ops xs in
+            let (done2,rest2) = precompileOptionIf False ops rest in
+                (done2,rest2)
 
 precompileOptionIf True ops (("elseoption":[]):xs) =
-		let (done,rest) = precompileOptionCode ops xs in
-			let (done2,rest2) = precompileOptionIf True ops rest in
-				(done2,rest2)
+        let (done,rest) = precompileOptionCode ops xs in
+            let (done2,rest2) = precompileOptionIf True ops rest in
+                (done2,rest2)
 
 precompileOptionIf False ops (("elseoption":[]):xs) =
-		let (done,rest) = precompileOptionCode ops xs in
-			let (done2,rest2) = precompileOptionIf True ops rest in
-				(done++done2,rest2)
+        let (done,rest) = precompileOptionCode ops xs in
+            let (done2,rest2) = precompileOptionIf True ops rest in
+                (done++done2,rest2)
 
 precompileOptionIf True ops (("elseifoption":a:[]):xs) =
-		let (done,rest) = precompileOptionCode ops xs in
-			let (done2,rest2) = precompileOptionIf True ops rest in
-				(done2,rest2)
+        let (done,rest) = precompileOptionCode ops xs in
+            let (done2,rest2) = precompileOptionIf True ops rest in
+                (done2,rest2)
 
 precompileOptionIf False ops (("elseifoption":a:[]):xs) =
-	precompileOptionIf False ops (("ifoption":a:[]):xs)
+    precompileOptionIf False ops (("ifoption":a:[]):xs)
 {-
-	if( elem a ops ) then
-		let (done,rest) = precompileOptionCode ops xs in
-			let (done2,rest2) = precompileOptionIf True ops rest in
-				(done++done2,rest2)
-		else
-		let (done,rest) = precompileOptionCode ops xs in
-			let (done2,rest2) = precompileOptionIf False ops rest in
-				(done2,rest2)
+    if( elem a ops ) then
+        let (done,rest) = precompileOptionCode ops xs in
+            let (done2,rest2) = precompileOptionIf True ops rest in
+                (done++done2,rest2)
+        else
+        let (done,rest) = precompileOptionCode ops xs in
+            let (done2,rest2) = precompileOptionIf False ops rest in
+                (done2,rest2)
 -}
 
 precompileOptionIf _ ops (("endoption":[]):xs) = ([],xs)
@@ -153,37 +153,37 @@ precompileOptionIf _ ops [] = error "if without endif"
 
 
 data ValueString = ValueStringDirect String | ValueStringVariable String
-	deriving (Show)
+    deriving (Show)
 
 data ValueInteger = ValueIntegerDirect Integer | ValueIntegerVariable String
-	deriving (Show)
+    deriving (Show)
 
 
 data Op =
-	Push ValueInteger | Pop |
-	Label String |
-	Doub | Swap |
---	Add | Sub | Mul | Div | Mod |
---	Store | Retrive |
-	Call String | Jump String | JumpZ String | JumpN String |
-	Ret | Exit |
-	OutN | OutC | InN | InC |
-	Noop |
-	Include String |
-	Debug_PrintStack |
-	Debug_PrintHeap |
-	Retrive (Maybe ValueInteger) | Store (Maybe ValueInteger) |
-	Test ValueInteger | PushS ValueString |
-	JumpP String | JumpNZ String |
-	JumpNP String | JumpPZ String |
-	Add (Maybe ValueInteger) |
-	Sub (Maybe ValueInteger) |
-	Mul (Maybe ValueInteger) |
-	Div (Maybe ValueInteger) |
-	Mod (Maybe ValueInteger) |
-	ValueS String ValueString |
-	ValueI String ValueInteger
-	deriving (Show)
+    Push ValueInteger | Pop |
+    Label String |
+    Doub | Swap |
+--  Add | Sub | Mul | Div | Mod |
+--  Store | Retrive |
+    Call String | Jump String | JumpZ String | JumpN String |
+    Ret | Exit |
+    OutN | OutC | InN | InC |
+    Noop |
+    Include String |
+    Debug_PrintStack |
+    Debug_PrintHeap |
+    Retrive (Maybe ValueInteger) | Store (Maybe ValueInteger) |
+    Test ValueInteger | PushS ValueString |
+    JumpP String | JumpNZ String |
+    JumpNP String | JumpPZ String |
+    Add (Maybe ValueInteger) |
+    Sub (Maybe ValueInteger) |
+    Mul (Maybe ValueInteger) |
+    Div (Maybe ValueInteger) |
+    Mod (Maybe ValueInteger) |
+    ValueS String ValueString |
+    ValueI String ValueInteger
+    deriving (Show)
 
 
 stringToStringList = parse
@@ -192,9 +192,9 @@ stringToStringList = parse
 
 filterTab :: String -> String
 filterTab s = map sic s
-	where
-		sic '\t' = ' '
-		sic a = a
+    where
+        sic '\t' = ' '
+        sic a = a
 
 stringListToOps :: [[String]] -> [Op]
 stringListToOps list = map stringListToOp list
@@ -262,10 +262,10 @@ stringToInteger ch = (read ch)::Integer
 stringToInteger :: String -> Integer
 stringToInteger [] = error "StringToInteger []"
 stringToInteger a = stringToInteger' a 0
-	where
-		stringToInteger' [] i = i
-		stringToInteger' (x:[]) i = i * 10 + toInteger (digitToInt x)
-		stringToInteger' (x:xs) i = stringToInteger' xs (i * 10 + (toInteger (digitToInt x)))
+    where
+        stringToInteger' [] i = i
+        stringToInteger' (x:[]) i = i * 10 + toInteger (digitToInt x)
+        stringToInteger' (x:xs) i = stringToInteger' xs (i * 10 + (toInteger (digitToInt x)))
 -}
 filterStringList :: [[String]] -> [[String]]
 filterStringList list = filter (\x->x/=[]) (map (filter (\x->x/="")) list)
@@ -297,9 +297,9 @@ dropToken (' ':xs) = xs
 dropToken ('"':xs) = dropTokenTill '"' xs
 
 dropToken (x:xs) = dropToken' xs
-	where
-		dropToken' ('"':xs) = ('"':xs)
-		dropToken' a = dropToken a
+    where
+        dropToken' ('"':xs) = ('"':xs)
+        dropToken' a = dropToken a
 
 
 getToken :: String -> String
@@ -308,9 +308,9 @@ getToken ('"':xs) = getTokenTill '"' xs
 getToken [] = []
 getToken (' ':xs) = []
 getToken (x:xs) = x:(getToken' xs)
-	where
-		getToken' ('"':xs) = []
-		getToken' a = getToken a
+    where
+        getToken' ('"':xs) = []
+        getToken' a = getToken a
 
 
 dropTokenTill c (x:xs) | c==x = xs
@@ -342,7 +342,7 @@ removeCommentsLines ('-':'-':xs) = removeCommentsLines (skipToNewLine xs)
 removeCommentsLines (x:xs) = x:(removeCommentsLines xs)
 
 
---	where
+--    where
 skipToNewLine ('\n':xs) = '\n':xs -- keep the new line included
 skipToNewLine (x:xs) = skipToNewLine xs
 skipToNewLine [] = []
@@ -352,20 +352,20 @@ type Label = (String,Integer)
 
 getLabels :: [Op] -> [Label]
 getLabels ops = getLabelsSic ops [] 0
-	where
-		getLabelsSic :: [Op] -> [Label] -> Integer -> [Label]
-		getLabelsSic ((Label l):xs) ls i | hasLabel ls l = error ("doublicate Label '" ++ l ++ "'")
-		getLabelsSic ((Label l):xs) ls i = getLabelsSic xs ((l,i):ls) (i+1)
-		getLabelsSic (_:xs) ls i = getLabelsSic xs ls i
-		getLabelsSic [] ls i = ls
-		hasLabel :: [Label] -> String -> Bool
-		hasLabel ((name1,i):xs) name2 | name1 == name2 = True
-		hasLabel ((name1,i):xs) name2 = hasLabel xs name2
-		hasLabel [] _ = False
+    where
+        getLabelsSic :: [Op] -> [Label] -> Integer -> [Label]
+        getLabelsSic ((Label l):xs) ls i | hasLabel ls l = error ("doublicate Label '" ++ l ++ "'")
+        getLabelsSic ((Label l):xs) ls i = getLabelsSic xs ((l,i):ls) (i+1)
+        getLabelsSic (_:xs) ls i = getLabelsSic xs ls i
+        getLabelsSic [] ls i = ls
+        hasLabel :: [Label] -> String -> Bool
+        hasLabel ((name1,i):xs) name2 | name1 == name2 = True
+        hasLabel ((name1,i):xs) name2 = hasLabel xs name2
+        hasLabel [] _ = False
 
 integerToString :: Integer -> String
 integerToString i = (if(i>=0) then 'a' else 'b') : (reverse (integerToStringSic (abs i))) ++ "c"
-	where
+    where
         integerToStringSic 0 = "a"
         integerToStringSic 1 = "b"
         integerToStringSic i = ( if( (mod i 2) == 0 ) then 'a' else 'b' ) : (integerToStringSic (div i 2))
@@ -386,34 +386,34 @@ simplifyIncludeOp (Include f) = []
 
 simplifyOps :: [Op] -> [Op]
 simplifyOps o = simplifyOps' o 1
-	where
-		simplifyOps' (x:xs) i = concat((simplifyOp x i):(simplifyOps' xs (i+1)):[])
-		simplifyOps' [] i = []
+    where
+        simplifyOps' (x:xs) i = concat((simplifyOp x i):(simplifyOps' xs (i+1)):[])
+        simplifyOps' [] i = []
 
 simplifyOp :: Op -> Integer -> [Op]
 simplifyOp (PushS (ValueStringDirect [])) i = [(Push (ValueIntegerDirect 0))]
 simplifyOp (PushS (ValueStringDirect (x:xs))) i = (simplifyOp (PushS (ValueStringDirect xs)) i) ++ [(Push (ValueIntegerDirect (toInteger (ord x))))]
 simplifyOp (JumpP s) i =
-	let s1 = (getLabelFromIndex i 0) in
-		((Doub):(JumpN s1):(Doub):(JumpZ s1):(Pop):(Jump s):(Label s1):(Pop):[])
+    let s1 = (getLabelFromIndex i 0) in
+        ((Doub):(JumpN s1):(Doub):(JumpZ s1):(Pop):(Jump s):(Label s1):(Pop):[])
 simplifyOp (JumpNP s) i =
-	let s1 = (getLabelFromIndex i 1) in
-		((JumpZ s1):(Jump s):(Label s1):[])
+    let s1 = (getLabelFromIndex i 1) in
+        ((JumpZ s1):(Jump s):(Label s1):[])
 simplifyOp (JumpNZ s) i =
-	let s1 = (getLabelFromIndex i 2) in
-		let s2 = (getLabelFromIndex i 3) in
-			(Doub:(JumpN s1):Doub:(JumpZ s1):(Jump s2):(Label s1):(Pop):(Jump s):(Label s2):(Pop):[])
+    let s1 = (getLabelFromIndex i 2) in
+        let s2 = (getLabelFromIndex i 3) in
+            (Doub:(JumpN s1):Doub:(JumpZ s1):(Jump s2):(Label s1):(Pop):(Jump s):(Label s2):(Pop):[])
 simplifyOp (JumpPZ s) i =
-	let s1 = (getLabelFromIndex i 4) in
-		((JumpN s1):(Jump s):(Label s1):[])
-simplifyOp (Test s) i =	((Doub):(Push s):(Sub Nothing):[])
-simplifyOp (Retrive (Just s)) i =	((Push s):(Retrive Nothing):[])
-simplifyOp (Store (Just s)) i =	((Push s):(Swap):(Store Nothing):[])
-simplifyOp (Add (Just s)) i =	((Push s):(Add Nothing):[])
-simplifyOp (Sub (Just s)) i =	((Push s):(Sub Nothing):[])
-simplifyOp (Mul (Just s)) i =	((Push s):(Mul Nothing):[])
-simplifyOp (Div (Just s)) i =	((Push s):(Div Nothing):[])
-simplifyOp (Mod (Just s)) i =	((Push s):(Mod Nothing):[])
+    let s1 = (getLabelFromIndex i 4) in
+        ((JumpN s1):(Jump s):(Label s1):[])
+simplifyOp (Test s) i = ((Doub):(Push s):(Sub Nothing):[])
+simplifyOp (Retrive (Just s)) i = ((Push s):(Retrive Nothing):[])
+simplifyOp (Store (Just s)) i = ((Push s):(Swap):(Store Nothing):[])
+simplifyOp (Add (Just s)) i = ((Push s):(Add Nothing):[])
+simplifyOp (Sub (Just s)) i = ((Push s):(Sub Nothing):[])
+simplifyOp (Mul (Just s)) i = ((Push s):(Mul Nothing):[])
+simplifyOp (Div (Just s)) i = ((Push s):(Div Nothing):[])
+simplifyOp (Mod (Just s)) i = ((Push s):(Mod Nothing):[])
 -- simplifyOp (Include f) i =
 simplifyOp a i = [a]
 
@@ -451,7 +451,7 @@ simplifyValueOp values op = ([op],values)
 
 simplifyValueOps :: [Op] -> [Op]
 simplifyValueOps ops = simpilfyValueOps' ops []
-	where
+    where
   simpilfyValueOps' :: [Op] -> [Value] -> [Op]
   simpilfyValueOps' [] values = []
   simpilfyValueOps' (x:xs) values =
@@ -465,7 +465,7 @@ normalizeOps = simplifyOps . simplifyIncludeOps . simplifyValueOps
 
 getLabelFromIndex :: Integer -> Integer -> String
 getLabelFromIndex i1 i2 = "__trans__" ++ (show i1) ++ "__" ++ (show i2) ++ "__"
-	-- labels created by the translator begin with "__trans__x__y__
+    -- labels created by the translator begin with "__trans__x__y__
 
 translateOpsToPWS :: [Op] -> [Label] -> Bool -> String
 translateOpsToPWS (x:xs) labels extSyntax = (translateOpToPWS x labels extSyntax) ++ "\n" ++ (translateOpsToPWS xs labels extSyntax)
