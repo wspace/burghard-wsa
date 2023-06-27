@@ -28,10 +28,14 @@ translateWSAOptions filename options extSyntax = do
       let ops = (stringListToOps stringListPrecompiled) in
         let opsNorm = normalizeOps ops in
           let pws = translateOpsToPWS opsNorm (getLabels opsNorm) extSyntax in
-            let ws = (translatePWSToWS pws) in
-              let wsEnded = (translateWSToEndedWS ws) in do
-                writeFile (filename++".pws") (pws)
-                writeFile (filename++".ws" ) (wsEnded)
+            let pwsEnded = translatePWSToEndedPWS pws in
+              let ws = (translatePWSToWS pwsEnded) in
+                let wsEnded = (translateWSToEndedWS ws) in do
+                  writeFile (filename++".pws") (pwsEnded)
+                  writeFile (filename++".ws" ) (wsEnded)
+
+translatePWSToEndedPWS :: String -> String
+translatePWSToEndedPWS s = s ++ "\n\n\n"
 
 translateWSToEndedWS :: String -> String
 translateWSToEndedWS s = s ++ "\n\n\nquit\n\n\n"
@@ -469,7 +473,7 @@ getLabelFromIndex i1 i2 = "__trans__" ++ (show i1) ++ "__" ++ (show i2) ++ "__"
 
 translateOpsToPWS :: [Op] -> [Label] -> Bool -> String
 translateOpsToPWS (x:xs) labels extSyntax = (translateOpToPWS x labels extSyntax) ++ "\n" ++ (translateOpsToPWS xs labels extSyntax)
-translateOpsToPWS [] labels extSyntax = "\n\n\n"
+translateOpsToPWS [] labels extSyntax = ""
 
 translateOpToPWS :: Op -> [Label] -> Bool -> String
 translateOpToPWS (Push (ValueIntegerDirect i)) ls _ = "aa" ++ " " ++ (integerToString i)
